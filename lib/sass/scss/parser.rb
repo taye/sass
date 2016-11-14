@@ -200,7 +200,7 @@ module Sass
           return dir
         end
 
-        val = almost_any_value
+        val = unrecognised_directive_value
         val = val ? ["@#{name} "] + Sass::Util.strip_string_array(val) : ["@#{name}"]
         directive_body(val, start_pos)
       end
@@ -215,6 +215,26 @@ module Sass
         end
 
         node(node, start_pos)
+      end
+
+      def unrecognised_directive_value
+        res = []
+
+        loop do
+          if (any = almost_any_value)
+            res << any
+          elsif (uri = tok(/url\(/i))
+            ss
+            res << uri << string
+            ss
+            res << tok!(/\)/)
+          end
+
+          break unless any || uri
+          ss
+        end
+
+        merge res
       end
 
       def special_directive(name, start_pos)
